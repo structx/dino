@@ -1,0 +1,10 @@
+tls:
+  options:
+    tunnel-h3:
+      alpnProtocols:
+        - h3
+  # stores:
+  #   default:
+  #     defaultCertificate:
+  #       certFile: /etc/traefik/certs/server.crt
+  #       keyFile:  /etc/traefik/certs/server.key

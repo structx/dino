@@ -1,0 +1,8 @@
+.github
+local-volumes
+docker-compose.yaml
+dynamic.yaml
+.env.*
+Makefile
+sqlc.yaml
+trivy.yaml
