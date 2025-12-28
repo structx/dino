@@ -1,0 +1,44 @@
+syntax = "proto3";
+
+package rtunnel.v1;
+
+option go_package = "soft.structx.io/dino/protos/rtunnel/v1";
+
+service ReverseTunnelService {
+  rpc EstablishTunnel(stream TunnelMessage) returns (stream TunnelMessage) {}
+}
+
+enum REVERSETUNNELPROTOCOL {
+  REVERSETUNNELPROTOCOL_UNSPECIFIED = 0;
+  REVERSETUNNELPROTOCOL_TCP = 1;
+  REVERSETUNNELPROTOCOL_UDP = 2;
+  REVERSETUNNELPROTOCOL_HTTP = 3;
+  REVERSETUNNELPROTOCOL_HTTPS = 4;
+}
+
+message TunnelMessage {
+  string session_id = 1;
+  oneof payload {
+    bytes data = 2;
+    NewConnection new_connection = 3;
+    CloseConnection close_connection = 4;
+    Route route_updates = 5;
+  }
+}
+
+message Route {
+  string hostname = 1;
+  string destination_protocol = 2;
+  string destination_ip = 3;
+  uint32 destination_port = 4;
+  bool is_deleted = 5;
+}
+
+message NewConnection {
+  REVERSETUNNELPROTOCOL protocol = 1;
+  string destination = 2;
+}
+
+message CloseConnection {
+  uint32 status_code = 1;
+}

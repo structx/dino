@@ -1,0 +1,86 @@
+syntax = "proto3";
+
+package routes.v1;
+
+import "google/protobuf/timestamp.proto";
+
+option go_package = "soft.structx.io/dino/protos/routes/v1";
+
+service RouteService {
+  rpc CreateRoute(CreateRouteRequest) returns (CreateRouteResponse) {}
+  rpc GetRoute(GetRouteRequest) returns (GetRouteResponse) {}
+  rpc ListRoutes(ListRoutesRequest) returns (ListRoutesResponse) {}
+  rpc UpdateRoute(UpdateRouteRequest) returns (UpdateRouteResponse) {}
+  rpc DeleteRoute(DeleteRouteRequest) returns (DeleteRouteResponse) {}
+}
+
+message RouteCreate {
+  string tunnel = 1;
+  string hostname = 2;
+  string dest_protocol = 3;
+  string dest_addr = 4;
+  uint32 dest_port = 5;
+}
+
+message Route {
+  string uid = 1;
+  string name = 2;
+  bool enabled = 3;
+  string tunnel = 4;
+  google.protobuf.Timestamp created_at = 5;
+  google.protobuf.Timestamp updated_at = 6;
+}
+
+message RoutePartial {
+  string uid = 1;
+  string hostname = 2;
+}
+
+message RouteUpdate {
+  string uid = 1;
+  string hostname = 2;
+  string dest_protocol = 3;
+  string dest_addr = 4;
+  uint32 dest_port = 5;
+  bool enabled = 6;
+}
+
+message CreateRouteRequest {
+  RouteCreate create = 1;
+}
+
+message CreateRouteResponse {
+  Route route = 1;
+}
+
+message GetRouteRequest {
+  string hostname = 1;
+}
+
+message GetRouteResponse {
+  Route route = 1;
+}
+
+message ListRoutesRequest {
+  string tunnel = 1;
+  int32 limit = 2;
+  int32 offset = 3;
+}
+
+message ListRoutesResponse {
+  repeated RoutePartial partials = 1;
+}
+
+message UpdateRouteRequest {
+  RouteUpdate update = 1;
+}
+
+message UpdateRouteResponse {
+  Route route = 1;
+}
+
+message DeleteRouteRequest {
+  string hostname = 1;
+}
+
+message DeleteRouteResponse {}

@@ -1,0 +1,34 @@
+version: "2"
+sql:
+  - engine: postgresql
+    queries: internal/routes/queries
+    schema: migrations/fixtures
+    gen:
+      go:
+        package: queries
+        sql_package: pgx/v5
+        out: internal/routes/queries
+        emit_exported_queries: false
+        emit_empty_slices: true
+        emit_prepared_queries: true
+        overrides:
+        - db_type: uuid
+          go_type:
+            import: github.com/google/uuid
+            type: UUID
+  - engine: postgresql
+    queries: internal/tunnel/queries
+    schema: migrations/fixtures
+    gen:
+      go:
+        package: queries
+        sql_package: pgx/v5
+        out: internal/tunnel/queries
+        emit_exported_queries: false
+        emit_empty_slices: true
+        emit_prepared_queries: true
+        overrides:
+        - db_type: uuid
+          go_type:
+            import: github.com/google/uuid
+            type: UUID
