@@ -237,16 +237,21 @@ func (s *serviceImpl) Active(ctx context.Context, hostname string) (string, erro
 }
 
 // Sync
-func (s *serviceImpl) Sync(ctx context.Context, tunnel string) ([]Route, error) {
+func (s *serviceImpl) Sync(ctx context.Context, tunnelUID string) ([]Route, error) {
 	timeout, cancel := context.WithTimeout(ctx, time.Second*3)
 	defer cancel()
 
-	rows, err := queries.New(s.db).SelectRoutesMany(timeout, tunnel)
+	uid, err := uuid.Parse(tunnelUID)
+	if err != nil {
+		return nil, fmt.Errorf("uuid.Parse: %w", err)
+	}
+
+	rows, err := queries.New(s.db).SelectRoutesMany(timeout, uid)
 	if err != nil {
 		return nil, fmt.Errorf("failed to execute select routes many query: %w", err)
 	}
 
-	return dtoTunnelRoutes(rows), nil
+	return dtoRoutes(rows), nil
 }
 
 func dtoRoute(r queries.DinoRoute) Route {
@@ -260,6 +265,14 @@ func dtoRoute(r queries.DinoRoute) Route {
 		Enabled:             r.IsActive,
 		CreatedAt:           r.CreatedAt.Time,
 	}
+}
+
+func dtoRoutes(s []queries.DinoRoute) []Route {
+	rs := make([]Route, 0, len(s))
+	for _, r := range s {
+		rs = append(rs, dtoRoute(r))
+	}
+	return rs
 }
 
 func dtoPartials(rs []queries.SelectManyRoutesRow) []RoutePartial {
@@ -276,27 +289,5 @@ func dtoPartial(r queries.SelectManyRoutesRow) RoutePartial {
 		Hostname:  r.Hostname,
 		Enabled:   r.IsActive,
 		CreatedAt: r.CreatedAt.Time,
-	}
-}
-
-func dtoTunnelRoutes(s []queries.SelectRoutesManyRow) []Route {
-	rs := make([]Route, 0, len(s))
-	for _, r := range s {
-		rs = append(rs, dtoTunnelRoute(r))
-	}
-	return rs
-}
-
-func dtoTunnelRoute(r queries.SelectRoutesManyRow) Route {
-	return Route{
-		ID:                  r.ID.String(),
-		Tunnel:              r.ID_2.String(),
-		Hostname:            r.Hostname,
-		DestinationProtocol: r.DestinationProtocol,
-		DestinationIP:       r.DestinationIp,
-		DestinationPort:     uint32(r.DestinationPort),
-		Enabled:             r.IsActive,
-		CreatedAt:           r.CreatedAt.Time,
-		UpdatedAt:           &r.UpdatedAt.Time,
 	}
 }

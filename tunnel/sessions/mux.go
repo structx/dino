@@ -151,13 +151,15 @@ func (s *sessionMultiplexer) InitSession(conn tunnelnet.Conn, sessionID, protoco
 		incoming:  ch,
 		outbound:  outboundConn,
 		cleanup: func() {
-			conn.Write(&tunnelnet.DataFrame{
+			if _, err := conn.Write(&tunnelnet.DataFrame{
 				SessionID:      sessionID,
 				IsControlFrame: true,
 				CloseConn: &tunnelnet.CloseConn{
 					Status: 1,
 				},
-			})
+			}); err != nil {
+				s.log.Error("conn.Write", zap.Error(err))
+			}
 		},
 	}
 

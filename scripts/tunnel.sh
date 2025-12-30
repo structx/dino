@@ -1,0 +1,4 @@
+#!/bin/bash
+
+export TUNNEL_ID=CHANGEME
+export TUNNEL_TOKEN=CHANGEME

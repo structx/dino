@@ -75,7 +75,7 @@ INNER JOIN
 ON
     r.tunnel_name = t.identifier
 WHERE
-    hostname = $1 AND is_active = TRUE
+    hostname = $1 AND r.is_active = TRUE
 `
 
 // SelectActiveRoute
@@ -166,41 +166,27 @@ func (q *Queries) SelectRoute(ctx context.Context, id uuid.UUID) (DinoRoute, err
 
 const selectRoutesMany = `-- name: SelectRoutesMany :many
 SELECT
-    r.id, r.tunnel_name, r.hostname, r.destination_protocol, r.destination_ip, r.destination_port, r.is_active, r.created_at, r.updated_at,
-    t.id
+    r.id, r.tunnel_name, r.hostname, r.destination_protocol, r.destination_ip, r.destination_port, r.is_active, r.created_at, r.updated_at
 FROM 
     dino.routes as r
 INNER JOIN
     dino.tunnels as t
 ON
-    r.tunnel_name = t.identitifer
+    r.tunnel_name = t.identifier
 WHERE
-    r.tunnel_name = $1
+    t.id = $1
 `
 
-type SelectRoutesManyRow struct {
-	ID                  uuid.UUID
-	TunnelName          string
-	Hostname            string
-	DestinationProtocol string
-	DestinationIp       string
-	DestinationPort     int32
-	IsActive            bool
-	CreatedAt           pgtype.Timestamp
-	UpdatedAt           pgtype.Timestamp
-	ID_2                uuid.UUID
-}
-
 // SelectRoutesMany
-func (q *Queries) SelectRoutesMany(ctx context.Context, tunnelName string) ([]SelectRoutesManyRow, error) {
-	rows, err := q.db.Query(ctx, selectRoutesMany, tunnelName)
+func (q *Queries) SelectRoutesMany(ctx context.Context, id uuid.UUID) ([]DinoRoute, error) {
+	rows, err := q.db.Query(ctx, selectRoutesMany, id)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	items := []SelectRoutesManyRow{}
+	items := []DinoRoute{}
 	for rows.Next() {
-		var i SelectRoutesManyRow
+		var i DinoRoute
 		if err := rows.Scan(
 			&i.ID,
 			&i.TunnelName,
@@ -211,7 +197,6 @@ func (q *Queries) SelectRoutesMany(ctx context.Context, tunnelName string) ([]Se
 			&i.IsActive,
 			&i.CreatedAt,
 			&i.UpdatedAt,
-			&i.ID_2,
 		); err != nil {
 			return nil, err
 		}

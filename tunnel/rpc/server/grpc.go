@@ -47,7 +47,7 @@ func (t tunnelConn) Write(df *tunnelnet.DataFrame) (int, error) {
 	if df.RouteUpdate != nil {
 		ru := df.RouteUpdate
 		if err := t.str.Send(&pb.TunnelMessage{
-			SessionId: "",
+			SessionId: df.SessionID,
 			Payload: &pb.TunnelMessage_RouteUpdates{
 				RouteUpdates: &pb.Route{
 					Hostname:            ru.Hostname,

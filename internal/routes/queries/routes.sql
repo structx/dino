@@ -58,18 +58,17 @@ INNER JOIN
 ON
     r.tunnel_name = t.identifier
 WHERE
-    hostname = $1 AND is_active = TRUE;
+    hostname = $1 AND r.is_active = TRUE;
 
 -- name: SelectRoutesMany :many
 -- SelectRoutesMany
 SELECT
-    r.*,
-    t.id
+    r.*
 FROM 
     dino.routes as r
 INNER JOIN
     dino.tunnels as t
 ON
-    r.tunnel_name = t.identitifer
+    r.tunnel_name = t.identifier
 WHERE
-    r.tunnel_name = $1;
+    t.id = $1;

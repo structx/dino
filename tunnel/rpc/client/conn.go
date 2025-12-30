@@ -61,6 +61,22 @@ func (c *clientConn) Read() (*tunnelnet.DataFrame, error) {
 				Hostname: msg.GetNewConnection().GetDestination(),
 			},
 		}, nil
+	} else if msg.GetRouteUpdates() != nil {
+		rcfg := msg.GetRouteUpdates()
+		return &tunnelnet.DataFrame{
+			SessionID:      msg.GetSessionId(),
+			IsControlFrame: true,
+			RouteUpdate: &tunnelnet.RouteUpdate{
+				Hostname:     rcfg.Hostname,
+				DestProtocol: rcfg.DestinationProtocol,
+				DestIP:       rcfg.DestinationIp,
+				DestPort:     rcfg.DestinationPort,
+				IsDelete:     rcfg.IsDeleted,
+			},
+			NewConn:   nil,
+			CloseConn: nil,
+			Payload:   nil,
+		}, nil
 	}
 
 	return nil, errors.New("unsupported message")

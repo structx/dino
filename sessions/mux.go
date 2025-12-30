@@ -14,6 +14,7 @@ import (
 	tunnelnet "soft.structx.io/dino/tunnel/net"
 )
 
+// Muxer
 type Muxer interface {
 	// RegisterTunnel
 	RegisterTunnel(context.Context, tunnelnet.Conn, string) error
@@ -96,6 +97,7 @@ func (m *sessionMultiplexer) UnarySession(ctx context.Context, tunnelUID string)
 
 }
 
+// SyncRoutes
 func (m *sessionMultiplexer) SyncRoutes(ctx context.Context, tunnelUID string) error {
 	routes, err := m.routeSvc.Sync(ctx, tunnelUID)
 	if err != nil {
@@ -111,14 +113,18 @@ func (m *sessionMultiplexer) SyncRoutes(ctx context.Context, tunnelUID string) e
 
 	for _, r := range routes {
 		if _, err := tunnel.stream.Write(&tunnelnet.DataFrame{
+			SessionID:      tunnelUID,
 			IsControlFrame: true,
 			RouteUpdate: &tunnelnet.RouteUpdate{
 				Hostname:     r.Hostname,
 				DestProtocol: r.DestinationProtocol,
 				DestIP:       r.DestinationIP,
 				DestPort:     r.DestinationPort,
-				IsDelete:     r.Enabled,
+				IsDelete:     r.Enabled == false,
 			},
+			NewConn:   nil,
+			CloseConn: nil,
+			Payload:   nil,
 		}); err != nil {
 			return fmt.Errorf("failed to write route config: %w", err)
 		}

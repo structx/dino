@@ -133,40 +133,42 @@ func (t *tunnelClient) worker(conn tunnelnet.Conn) {
 
 		t.log.Debug("received msg", zap.Any("dataframe", df))
 
-		if df.IsControlFrame {
-			if df.NewConn != nil {
-				r, ok := t.mux.Match(df.NewConn.Hostname)
-				if !ok {
-					// send back missing route error
-					t.log.Error("no matched route", zap.String("hostname", df.NewConn.Hostname))
-					continue
-				}
-
-				hostAndPort := net.JoinHostPort(r.IP, r.Port)
-				if err := t.sessions.InitSession(conn, df.SessionID, r.Protocol, hostAndPort); err != nil {
-					t.log.Error("init session", zap.Error(err))
-					continue
-				}
-			} else if df.CloseConn != nil {
-				if err := t.sessions.CloseSession(df.SessionID); err != nil {
-					t.log.Error("close session", zap.Error(err))
-					continue
-				}
-			} else if df.RouteUpdate != nil {
-				if df.RouteUpdate.IsDelete {
-					t.mux.Del(df.RouteUpdate.Hostname)
-					continue
-				}
-
-				port, err := validateAndParsePort(df.RouteUpdate.DestPort)
-				if err != nil {
-					t.log.Error("invalid port", zap.Error(err))
-					continue
-				}
-
-				t.mux.Add(df.RouteUpdate.Hostname, df.RouteUpdate.DestProtocol, df.RouteUpdate.DestIP, port)
+		if df.NewConn != nil {
+			r, ok := t.mux.Match(df.NewConn.Hostname)
+			if !ok {
+				// send back missing route error
+				t.log.Error("no matched route", zap.String("hostname", df.NewConn.Hostname))
 				continue
 			}
+
+			hostAndPort := net.JoinHostPort(r.IP, r.Port)
+			if err := t.sessions.InitSession(conn, df.SessionID, r.Protocol, hostAndPort); err != nil {
+				t.log.Error("init session", zap.Error(err))
+				continue
+			}
+		}
+		if df.CloseConn != nil {
+			if err := t.sessions.CloseSession(df.SessionID); err != nil {
+				t.log.Error("close session", zap.Error(err))
+				continue
+			}
+		}
+		if df.RouteUpdate != nil {
+
+			if df.RouteUpdate.IsDelete {
+				t.mux.Del(df.RouteUpdate.Hostname)
+				continue
+			}
+
+			port, err := validateAndParsePort(df.RouteUpdate.DestPort)
+			if err != nil {
+				t.log.Error("invalid port", zap.Error(err))
+				continue
+			}
+
+			t.log.Info("config update", zap.Any("route", df.RouteUpdate))
+			t.mux.Add(df.RouteUpdate.Hostname, df.RouteUpdate.DestProtocol, df.RouteUpdate.DestIP, port)
+			continue
 		}
 
 		err = t.sessions.RouteMsg(df.SessionID, df.Payload)

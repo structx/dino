@@ -2,6 +2,7 @@ package proxy
 
 import (
 	"io"
+	"net"
 	"net/http"
 	"sync"
 
@@ -57,7 +58,6 @@ func newModule(p Params) Result {
 
 // ServeHTTP
 func (h *handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	h.log.Debug("proxy handler")
 	ctx := r.Context()
 
 	hostname := r.Header.Get("host")
@@ -75,7 +75,14 @@ func (h *handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	activeUID, err := h.routeSvc.Active(ctx, hostname)
+	host, _, err := net.SplitHostPort(hostname)
+	if err != nil {
+		h.log.Error("split host and port", zap.Error(err))
+		http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
+		return
+	}
+
+	activeUID, err := h.routeSvc.Active(ctx, host)
 	if err != nil {
 		h.log.Error("active route", zap.Error(err))
 		http.Error(w, http.StatusText(http.StatusNotFound), http.StatusNotFound)
