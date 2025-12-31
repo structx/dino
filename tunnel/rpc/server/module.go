@@ -15,7 +15,7 @@ type Params struct {
 
 	Logger *zap.Logger
 
-	Mux      sessions.Muxer
+	Mux      sessions.Multiplexer
 	Verifier verifier.Verifier
 }
 

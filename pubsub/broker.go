@@ -33,8 +33,10 @@ func (r *RouteConfig) UnmarshalJSON(b []byte) error {
 	return json.Unmarshal(b, &r)
 }
 
+// interface compliance
 var _ Msg = (*RouteConfig)(nil)
 
+// Broker
 type Broker interface {
 	Publish(string, interface{}) error
 
@@ -42,6 +44,7 @@ type Broker interface {
 	Unsubsribe(string)
 }
 
+// inmemory implementation of message broker
 type inmemoryBroker struct {
 	mtx  sync.RWMutex
 	subs map[string]chan string
@@ -64,14 +67,16 @@ func (i *inmemoryBroker) Publish(topic string, payload interface{}) error {
 		return fmt.Errorf("json.Marshal: %w", err)
 	}
 
-	payload64 := base64.StdEncoding.EncodeToString(jsonbytes)
+	encoded := base64.StdEncoding.EncodeToString(jsonbytes)
+
 	i.mtx.Lock()
 	defer i.mtx.Unlock()
+
 	if ch, ok := i.subs[topic]; !ok {
 		i.subs[topic] = make(chan string)
-		i.subs[topic] <- payload64
+		i.subs[topic] <- encoded
 	} else {
-		ch <- payload64
+		ch <- encoded
 	}
 
 	return nil

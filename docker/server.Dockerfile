@@ -1,14 +1,14 @@
 
 ARG FIPS_ON=on
 
-ARG ALPINE_VERSION=3.22
-ARG GO_VERSION=1.25.4
+ARG ALPINE_VERSION=3.23
+ARG GO_VERSION=1.25.5
 
 FROM alpine:${ALPINE_VERSION} AS grpc_health_probe
 
 RUN apk add --no-cache curl ca-certificates
 
-ENV GRPC_HEALTH_PROBE_VERSION=v0.4.42
+ENV GRPC_HEALTH_PROBE_VERSION=v0.4.43
 ENV TARGETOS=linux
 ENV TARGETARCH=amd64
 
@@ -34,8 +34,8 @@ USER 65532
 
 VOLUME [ "/qlog" ]
 
-# HEALTHCHECK --interval=30s --timeout=10s \
-#     CMD [ "/usr/bin/grpc_health_probe", "-addr", "127.0.0.1:50051" ]
+HEALTHCHECK --interval=30s --timeout=10s \
+    CMD [ "/usr/bin/grpc_health_probe", "-addr", "127.0.0.1:50051" ]
 
 EXPOSE 50051 4242
 

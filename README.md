@@ -1,10 +1,21 @@
 
-# Dino
+# Dino 🦕
 
-reverse tunnel
+![GitHub go.mod Go version](https://img.shields.io/github/go-mod/go-version/structx/dino)
 
-code is not ready for production use. Under active development. Documentation will be added with the release of version `0.1.0`.
 
-## Table of Contents
+Routing & Tunnel Management
 
-- [Install](docs/install.md)
+## 📖 Table of Contents
+
+[🚀 Quick Start](#-quick-start)
+
+## 🚀 Quick Start
+
+1. **Clone & Launch** 
+```bash
+git clone https://github.com/structx/dino.git
+cd dino
+docker compose up -d
+```
+2. Verify: `docker logs dino`

@@ -18,90 +18,85 @@ services:
     volumes:
       - ${PWD}/.local-volumes/pgdata:/var/lib/postgresql/data:z
 
-  # ingress:
-  #   image: traefik:v3.6.2
-  #   container_name: traefik-ingress
-  #   restart: 'unless-stopped'
-  #   depends_on:
-  #     - server
-  #   security_opt:
-  #     - no-new-privileges:true
-  #     - label=type:container_runtime_t
-  #   command:
-  #     # entrypoints
-  #     - --entrypoints.web.address=:80
-  #     - --entrypoints.websecure.address=:443
-  #     - --entrypoints.quic.address=:4242/udp
-  #     # providers
-  #     - --providers.docker=true
-  #     - --providers.docker.exposedbydefault=false
-  #     - --providers.file.filename=/etc/traefik/dynamic.yaml
-  #     # api and dashboard
-  #     - --api.dashboard=true
-  #     - --api.insecure=true
-  #     # observability
-  #     - --log.level=DEBUG
-  #     - --accesslog=true
-  #   labels:
-  #     - traefik.enable=true
-  #     - traefik.http.routers.dashboard.rule=Host(`traefik.dino.local`)
-  #     - traefik.http.routers.dashboard.entrypoints=web
-  #     - traefik.http.routers.dashboard.service=api@internal
-  #   networks:
-  #     - proxy
-  #   ports:
-  #     - 8080:8080
-  #     - 8000:80
-  #     - 8443:443/tcp
-  #     - 4242:4242/udp
-  #   volumes:
-  #     - ${PWD}/certs/backend.cert:/etc/traefik/certs/server.crt:z
-  #     - ${PWD}/certs/backend.key:/etc/traefik/certs/server.key:z
-  #     - ${PWD}/dynamic.yaml:/etc/traefik/dynamic.yaml:z
-  #     - /var/run/docker.sock:/var/run/docker.sock:z
+  ingress:
+    image: traefik:v3.6.2
+    container_name: traefik-ingress
+    restart: 'unless-stopped'
+    depends_on:
+      - server
+    security_opt:
+      - no-new-privileges:true
+      - label=type:container_runtime_t
+    command:
+      # entrypoints
+      - --entrypoints.web.address=:80
+      - --entrypoints.websecure.address=:443
+      - --entrypoints.quic.address=:4242/udp
+      # providers
+      - --providers.docker=true
+      - --providers.docker.exposedbydefault=false
+      - --providers.file.filename=/etc/traefik/dynamic.yaml
+      # api and dashboard
+      - --api.dashboard=true
+      - --api.insecure=true
+      # observability
+      - --log.level=DEBUG
+      - --accesslog=true
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.dashboard.rule=Host(`traefik.dino.local`)
+      - traefik.http.routers.dashboard.entrypoints=web
+      - traefik.http.routers.dashboard.service=api@internal
+    networks:
+      - proxy
+    ports:
+      - 8080:8080
+      - 8000:80
+      - 8443:443/tcp
+      - 4242:4242/udp
+    volumes:
+      - ${PWD}/certs/backend.cert:/etc/traefik/certs/server.crt:z
+      - ${PWD}/certs/backend.key:/etc/traefik/certs/server.key:z
+      - ${PWD}/dynamic.yaml:/etc/traefik/dynamic.yaml:z
+      - /var/run/docker.sock:/var/run/docker.sock:z
 
-  # server:
-  #   image: dino/server:latest
-  #   container_name: dino-api
-  #   restart: 'unless-stopped'
-  #   user: 65532:65532
-  #   cap_drop:
-  #     - ALL
-  #   cap_add:
-  #     - NET_BIND_SERVICE
-  #   depends_on:
-  #     - database
-  #   labels:
-  #     - traefik.enable=true
-  #     # api
-  #     - traefik.http.routers.dino-api.rule=Host(`api.dino.local`)
-  #     - traefik.http.routers.dino-api.entrypoints=web
-  #     - traefik.http.routers.dino-api.service=dino-api-service
-  #     - traefik.http.services.dino-api-service.loadbalancer.server.scheme=h2c
-  #     - traefik.http.services.dino-api-service.loadbalancer.server.port=50051
-  #     - traefik.udp.routers.tunnel.entrypoints=quic
-  #     - traefik.udp.routers.tunnel.service=tunnel-h3
-  #     - traefik.udp.services.tunnel-h3.loadbalancer.server.port=4242
-  #   env_file:
-  #     - ${PWD}/.env.development
-  #   networks:
-  #     - proxy
-  #     - dino-private-network
-  #     # - tunnel-network
-  #   volumes:
-  #     - ${PWD}/certs/backend.cert:/etc/ssl/live/server.crt:z
-  #     - ${PWD}/certs/backend.key:/etc/ssl/live/server.key:z
-  #   ports:
-  #     - 50051
-  #     - 4242/udp
-
-
-#   {"tunnel": {"UID":"884cb0fa-a32b-4f1e-8777-78a738a49b8d","Name":"hello","CreatedAt":"2025-12-26T06:00:53.484019Z","UpdatedAt":null}}
-# {"auth_details": {"Key":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJkaW5vLmxvY2FsIiwic3ViIjoiaGVsbG8iLCJhdWQiOlsiZGlubyJdLCJuYmYiOjE3NjY3Mjg4NTMsImlhdCI6MTc2NjcyODg1MywianRpIjoiODg0Y2IwZmEtYTMyYi00ZjFlLTg3NzctNzhhNzM4YTQ5YjhkIn0.DjCo4kC41QY3HgjI2Tw_mbt7Y4_KI3QNAcctop72LXs"}}
+  dino:
+    image: dino/server:latest
+    container_name: dino
+    restart: 'unless-stopped'
+    user: 65532:65532
+    cap_drop:
+      - ALL
+    cap_add:
+      - NET_BIND_SERVICE
+    depends_on:
+      - database
+    labels:
+      - traefik.enable=true
+      # api
+      - traefik.http.routers.dino.rule=Host(`api.dino.local`)
+      - traefik.http.routers.dino.entrypoints=web
+      - traefik.http.routers.dino.service=dino
+      - traefik.http.services.dino.loadbalancer.server.scheme=h2c
+      - traefik.http.services.dino.loadbalancer.server.port=50051
+      # tunnel
+      - traefik.udp.routers.tunnel.entrypoints=quic
+      - traefik.udp.routers.tunnel.service=tunnel
+      - traefik.udp.services.tunnel.loadbalancer.server.port=4242
+    env_file:
+      - ${PWD}/.env.development
+    networks:
+      - proxy
+      - dino-private-network
+    volumes:
+      - ${PWD}/certs/backend.cert:/etc/ssl/live/server.crt:z
+      - ${PWD}/certs/backend.key:/etc/ssl/live/server.key:z
+    ports:
+      - 50051
+      - 4242/udp
 
   # tunnel:
   #   image: dino/tunnel:latest
-  #   eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJoZWxsbyIsImV4cCI6MTc2NjcyNjg0NywibmJmIjoxNzY2NzI2ODQ3LCJqdGkiOiIyNzIxMmJjMy0xYTY0LTRlMWEtODU4MS01N2U2ZmY3NzU3Y2YifQ.CihAqGUV21byS7IR3SjTHbGC8vrNaPaT4I4X0-5ZNQg
   #   container_name: reverse-tunnel
   #   restart: 'unless-stopped'
   #   environment:
@@ -121,7 +116,3 @@ networks:
     external: true
   dino-private-network: # private remote network
     external: true
-  # tunnel-network: # simulate tunnel connectivity
-  #   external: true
-  # local-network:  # local cluster network
-  #   external: true

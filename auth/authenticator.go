@@ -9,6 +9,7 @@ import (
 	"soft.structx.io/dino/setup"
 )
 
+// Claims
 type Claims struct {
 	jwt.RegisteredClaims
 }
@@ -46,7 +47,11 @@ var Module = fx.Module("authenticator", fx.Provide(newModule))
 
 func newModule(p Params) Result {
 	return Result{
-		Auth: &simpleAuth{issuer: p.Cfg.Issuer, audience: p.Cfg.Audience, jwtDuration: -1},
+		Auth: &simpleAuth{
+			issuer:      p.Cfg.JWT.Issuer,
+			audience:    p.Cfg.JWT.Audience,
+			jwtDuration: time.Duration(p.Cfg.JWT.Duration),
+		},
 	}
 }
 

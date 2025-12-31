@@ -23,7 +23,7 @@ type Params struct {
 
 	Logger *zap.Logger
 
-	Mux sessions.Muxer
+	Mux sessions.Multiplexer
 
 	RouteService routes.Service
 }
@@ -40,7 +40,7 @@ type handler struct {
 
 	routeSvc routes.Service
 
-	mux sessions.Muxer
+	mux sessions.Multiplexer
 }
 
 // Module

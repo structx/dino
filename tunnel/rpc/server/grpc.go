@@ -126,7 +126,7 @@ type reverseTunnelServer struct {
 
 	log *zap.Logger
 
-	mux      sessions.Muxer
+	mux      sessions.Multiplexer
 	verifier verifier.Verifier
 }
 
@@ -134,7 +134,7 @@ type reverseTunnelServer struct {
 var _ pb.ReverseTunnelServiceServer = (*reverseTunnelServer)(nil)
 var _ tunnelnet.Conn = (*tunnelConn)(nil)
 
-func newReverseTunnelServer(logger *zap.Logger, sessionMux sessions.Muxer, verifier verifier.Verifier) pb.ReverseTunnelServiceServer {
+func newReverseTunnelServer(logger *zap.Logger, sessionMux sessions.Multiplexer, verifier verifier.Verifier) pb.ReverseTunnelServiceServer {
 	return &reverseTunnelServer{
 		log:      logger.Named("rtunnel_server"),
 		mux:      sessionMux,

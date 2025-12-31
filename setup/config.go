@@ -41,20 +41,33 @@ type Logger struct {
 	Level string `env:"LEVEL,default=DEBUG"`
 }
 
+// Proxy
+type Proxy struct {
+	Host string `env:"HOST, default=127.0.0.1"`
+	Port string `env:"PORT, default=8080"`
+}
+
 // Server
 type Server struct {
-	Host     string `env:"HOST, default=127.0.0.1"`
-	Port     string `env:"PORT, default=50051"`
+	Host string `env:"HOST, default=127.0.0.1"`
+	Port string `env:"PORT, default=50051"`
+
 	QuicHost string `env:"QUIC_HOST, default=127.0.0.1"`
 	QuicPort string `env:"QUIC_PORT, default=4242"`
+
 	CertPath string `env:"SSL_CERT_PATH"`
 	KeyPath  string `env:"SSL_KEY_PATH"`
 }
 
+type JWT struct {
+	Duration int64    `env:"DURATION, default=-1"` // jwt token duration in seconds
+	Issuer   string   `env:"ISSUER, default=dino.local"`
+	Audience []string `env:"AUD,default=dino"`
+}
+
+// Authenticator
 type Authenticator struct {
-	JWTDuration int64    `env:"JWT_DURATION"` // jwt token duration in seconds
-	Issuer      string   `env:"JWT_ISSUER, default=dino.local"`
-	Audience    []string `env:"JWT_AUD,default=dino"`
+	JWT *JWT `env:",prefix=JWT_"`
 }
 
 // Tunnel
@@ -69,10 +82,12 @@ type Config struct {
 	fx.Out
 
 	API  *API           `env:",prefix=API_"`
-	Auth *Authenticator `env:",prefix=JWT_"`
+	Auth *Authenticator `env:",prefix=AUTH_"`
 
 	DB  *DB     `env:",prefix=DB_"`
 	Log *Logger `env:",prefix=LOG_"`
+
+	Proxy *Proxy `env:",prefix=PROXY_"`
 
 	Server *Server `env:",prefix=SERVER_"`
 	Tunnel *Tunnel `env:",prefix=TUNNEL_"`

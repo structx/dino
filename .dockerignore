@@ -1,5 +1,7 @@
 .github
-local-volumes
+.local-volumes
+.certs
+
 docker-compose.yaml
 dynamic.yaml
 .env.*

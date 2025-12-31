@@ -1,6 +1,6 @@
 module soft.structx.io/dino
 
-go 1.25.4
+go 1.25.5
 
 tool (
 	google.golang.org/grpc/cmd/protoc-gen-go-grpc

@@ -41,10 +41,10 @@ func (m *MockService) EXPECT() *MockServiceMockRecorder {
 }
 
 // Active mocks base method.
-func (m *MockService) Active(arg0 context.Context, arg1 string) (Route, error) {
+func (m *MockService) Active(arg0 context.Context, arg1 string) (string, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Active", arg0, arg1)
-	ret0, _ := ret[0].(Route)
+	ret0, _ := ret[0].(string)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -112,6 +112,21 @@ func (m *MockService) List(arg0 context.Context, arg1 RouteList) ([]RoutePartial
 func (mr *MockServiceMockRecorder) List(arg0, arg1 any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "List", reflect.TypeOf((*MockService)(nil).List), arg0, arg1)
+}
+
+// Sync mocks base method.
+func (m *MockService) Sync(arg0 context.Context, arg1 string) ([]Route, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Sync", arg0, arg1)
+	ret0, _ := ret[0].([]Route)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// Sync indicates an expected call of Sync.
+func (mr *MockServiceMockRecorder) Sync(arg0, arg1 any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Sync", reflect.TypeOf((*MockService)(nil).Sync), arg0, arg1)
 }
 
 // Update mocks base method.

@@ -14,8 +14,8 @@ import (
 	tunnelnet "soft.structx.io/dino/tunnel/net"
 )
 
-// Muxer
-type Muxer interface {
+// Multiplexer
+type Multiplexer interface {
 	// RegisterTunnel
 	RegisterTunnel(context.Context, tunnelnet.Conn, string) error
 
@@ -27,6 +27,9 @@ type Muxer interface {
 }
 
 type sessionMultiplexer struct {
+	ctx      context.Context
+	cancelFn context.CancelFunc
+
 	log *zap.Logger
 
 	mtx     sync.Mutex
@@ -43,9 +46,12 @@ func newMux(
 	broker pubsub.Broker,
 	tsvc tunnel.Service,
 	rsvc routes.Service,
-) Muxer {
+) *sessionMultiplexer {
+	ctx, cancel := context.WithCancel(context.Background())
 	return &sessionMultiplexer{
 		log:       logger,
+		ctx:       ctx,
+		cancelFn:  cancel,
 		mtx:       sync.Mutex{},
 		tunnels:   make(map[string]*activeTunnel),
 		tunnelSvc: tsvc,
@@ -120,7 +126,7 @@ func (m *sessionMultiplexer) SyncRoutes(ctx context.Context, tunnelUID string) e
 				DestProtocol: r.DestinationProtocol,
 				DestIP:       r.DestinationIP,
 				DestPort:     r.DestinationPort,
-				IsDelete:     r.Enabled == false,
+				IsDelete:     !r.Enabled,
 			},
 			NewConn:   nil,
 			CloseConn: nil,
@@ -133,34 +139,45 @@ func (m *sessionMultiplexer) SyncRoutes(ctx context.Context, tunnelUID string) e
 	return nil
 }
 
-func (m *sessionMultiplexer) subscribe() {
-	ch := m.broker.Subscribe("dino.routes")
+func (m *sessionMultiplexer) start(_ context.Context) error {
+	ch := m.broker.Subscribe("dino.routes.*")
 	go m.subscription(ch)
+	return nil
+}
+
+func (m *sessionMultiplexer) stop(_ context.Context) error {
+	m.cancelFn()
+	return nil
 }
 
 func (m *sessionMultiplexer) subscription(ch chan string) {
-	for msg := range ch {
-		rcfg, err := decodeMessge(msg)
-		if err != nil {
-			m.log.Error("decode route config", zap.Error(err))
-			continue
-		}
+	for {
+		select {
+		case <-m.ctx.Done():
+			return
+		case msg := <-ch:
+			rcfg, err := decodeMessge(msg)
+			if err != nil {
+				m.log.Error("decode route config", zap.Error(err))
+				continue
+			}
 
-		if t, ok := m.tunnels[rcfg.TunnelUID]; !ok {
-			// tunnel is not active continue looping
-			continue
-		} else {
-			if _, err := t.stream.Write(&tunnelnet.DataFrame{
-				SessionID: t.streamID,
-				RouteUpdate: &tunnelnet.RouteUpdate{
-					Hostname:     rcfg.Hostname,
-					DestProtocol: rcfg.DestProtocol,
-					DestIP:       rcfg.DestAddr,
-					DestPort:     rcfg.DestPort,
-					IsDelete:     rcfg.IsDelete,
-				},
-			}); err != nil {
-				m.log.Error("write route config", zap.Error(err))
+			if t, ok := m.tunnels[rcfg.TunnelUID]; !ok {
+				// tunnel is not active continue looping
+				continue
+			} else {
+				if _, err := t.stream.Write(&tunnelnet.DataFrame{
+					SessionID: t.streamID,
+					RouteUpdate: &tunnelnet.RouteUpdate{
+						Hostname:     rcfg.Hostname,
+						DestProtocol: rcfg.DestProtocol,
+						DestIP:       rcfg.DestAddr,
+						DestPort:     rcfg.DestPort,
+						IsDelete:     rcfg.IsDelete,
+					},
+				}); err != nil {
+					m.log.Error("write route config", zap.Error(err))
+				}
 			}
 		}
 	}
