@@ -8,7 +8,9 @@ Routing & Tunnel Management
 
 ## 📖 Table of Contents
 
-[🚀 Quick Start](#-quick-start)
+[🚀 Quick Start](#-quick-start)\
+[🏗️ Architecture](docs/architecture.md)\
+[⚙️ Config](docs/config.md)
 
 ## 🚀 Quick Start
 

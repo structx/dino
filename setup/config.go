@@ -59,6 +59,7 @@ type Server struct {
 	KeyPath  string `env:"SSL_KEY_PATH"`
 }
 
+// JWT
 type JWT struct {
 	Duration int64    `env:"DURATION, default=-1"` // jwt token duration in seconds
 	Issuer   string   `env:"ISSUER, default=dino.local"`
@@ -74,7 +75,7 @@ type Authenticator struct {
 type Tunnel struct {
 	ID       string `env:"ID"`
 	Token    string `env:"TOKEN"`
-	Endpoint string `env:"ENDPOINT"`
+	Endpoint string `env:"ENDPOINT, default=tunnel.dino.local:4242"`
 }
 
 // Configs
