@@ -1,0 +1,21 @@
+---
+version: '3.9'
+
+services:
+
+  tunnel:
+    image: dino/tunnel:latest
+    container_name: reverse-tunnel
+    restart: 'unless-stopped'
+    environment:
+      - name=value
+    networks:
+      - tunnel-network
+      - local-network
+  
+  whoami:
+    image: dino/whoami:latest
+    container_name: whoami
+    networks:
+      - local-network
+
