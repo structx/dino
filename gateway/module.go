@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"net"
 	"net/http"
-	"strings"
 	"time"
 
 	"go.uber.org/fx"
@@ -61,7 +60,8 @@ type Params struct {
 
 	Logger *zap.Logger
 
-	Cfg *setup.Server
+	ServerConfig *setup.Server
+	ProxyConfig  *setup.Proxy
 
 	Proxy http.Handler
 
@@ -76,7 +76,7 @@ var Module = fx.Module("gateway", fx.Invoke(invokeModule))
 
 func invokeModule(p Params) error {
 
-	hostAndPort := net.JoinHostPort(p.Cfg.Host, p.Cfg.Port)
+	hostAndPort := net.JoinHostPort(p.ServerConfig.Host, p.ServerConfig.Port)
 
 	p.Logger.Info("num transports", zap.Int("len", len(p.Transports)))
 
@@ -94,17 +94,17 @@ func invokeModule(p Params) error {
 	mux := http.NewServeMux()
 	mux.HandleFunc("/", p.Proxy.ServeHTTP)
 
-	combinedHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		fmt.Println("received request")
-		if r.ProtoMajor == 2 && strings.HasPrefix(r.Header.Get("content-type"), "application/grpc") {
-			gs.ServeHTTP(w, r)
-			return
-		}
+	proxyAddr := net.JoinHostPort(p.ProxyConfig.Host, p.ProxyConfig.Port)
+	h1 := &http.Server{
+		Addr:              proxyAddr,
+		Handler:           p.Proxy,
+		ReadTimeout:       time.Second * p.ProxyConfig.ReadTimeout,
+		ReadHeaderTimeout: time.Second * p.ProxyConfig.ReadHeaderTimeout,
+		WriteTimeout:      time.Second * p.ProxyConfig.WriteTimeout,
+		IdleTimeout:       time.Second * p.ProxyConfig.IdleTimeout,
+	}
 
-		mux.ServeHTTP(w, r)
-	})
-
-	h2h := h2c.NewHandler(combinedHandler, &http2.Server{})
+	h2h := h2c.NewHandler(gs, &http2.Server{})
 
 	pr := new(http.Protocols)
 	pr.SetHTTP1(true)
@@ -118,6 +118,13 @@ func invokeModule(p Params) error {
 
 	p.Lc.Append(fx.Hook{
 		OnStart: func(ctx context.Context) error {
+			p.Logger.Info("start http/1 proxy server", zap.String("server_addr", h1.Addr))
+			go func() {
+				if err := h1.ListenAndServe(); err != nil && errors.Is(err, http.ErrServerClosed) {
+					p.Logger.Fatal("start http/1 proxy server", zap.Error(err))
+				}
+			}()
+
 			p.Logger.Info("start hls server", zap.String("server_addr", hls.Addr))
 			go func() {
 				if err := hls.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
@@ -145,9 +152,14 @@ func invokeModule(p Params) error {
 		OnStop: func(ctx context.Context) error {
 			var multiErr error
 
+			p.Logger.Info("shutdown http/1 proxy server")
+			if err := h1.Shutdown(ctx); err != nil {
+				multiErr = multierr.Append(multiErr, fmt.Errorf("h1.Shutdown: %w", err))
+			}
+
 			p.Logger.Info("shutdown hls server")
 			if err := hls.Shutdown(ctx); err != nil {
-				multiErr = multierr.Append(err, fmt.Errorf("hls.Shutdown: %w", err))
+				multiErr = multierr.Append(multiErr, fmt.Errorf("hls.Shutdown: %w", err))
 			}
 
 			p.Logger.Info("shutdown gRPC-QUIC server")
