@@ -25,3 +25,14 @@ servers and tunnels can be configured using environment variables. this page wil
 `TUNNEL_ID`                                     tunnel id\
 `TUNNEL_TOKEN`                                  tunnel token\
 `TUNNEL_ENDPOINT`   `tunnel.dino.local:4222`    tunnel endpoint
+
+## Proxy
+
+`http` proxy configuration
+
+`PROXY_HOST`                `127.0.0.1`     http server host\
+`PROXY_PORT`                `8080`          http server port\
+`PROXY_TIMEOUT`             `15`            max duration to read entire request (seconds)\
+`PROXY_READ_HEADER_TIMEOUT` `15`            duration to read request headers (seconds)\
+`PROXY_WRITE_TIMEOUT`       `15`            max duration to write response\
+`PROXY_IDLE_TIMEOUT`        `30`            duration to wait for next request when keepalive is enabled

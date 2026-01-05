@@ -3,6 +3,7 @@ package setup
 import (
 	"context"
 	"strings"
+	"time"
 
 	"github.com/sethvargo/go-envconfig"
 	"go.uber.org/fx"
@@ -45,6 +46,11 @@ type Logger struct {
 type Proxy struct {
 	Host string `env:"HOST, default=127.0.0.1"`
 	Port string `env:"PORT, default=8080"`
+
+	ReadTimeout       time.Duration `env:"READ_TIMEOUT, default=15"`
+	ReadHeaderTimeout time.Duration `env:"READ_HEADER_TIMEOUT, default=15"`
+	WriteTimeout      time.Duration `env:"WRITE_TIMEOUT, default=15"`
+	IdleTimeout       time.Duration `env:"IDLE_TIMEOUT, default=30"`
 }
 
 // Server
