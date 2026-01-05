@@ -1,5 +1,8 @@
 
-FROM golang:1.25.3-alpine3.22
+ARG ALPINE_VERSION=3.23
+ARG GO_VERSION=1.25.5
+
+FROM golang:${GO_VERSION}-alpine${ALPINE_VERSION}
 
 WORKDIR /usr/src/app
 

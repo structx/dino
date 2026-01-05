@@ -23,7 +23,7 @@ services:
     container_name: traefik-ingress
     restart: 'unless-stopped'
     depends_on:
-      - server
+      - dino
     security_opt:
       - no-new-privileges:true
       - label=type:container_runtime_t
@@ -89,30 +89,16 @@ services:
       - proxy
       - dino-private-network
     volumes:
-      - ${PWD}/certs/backend.cert:/etc/ssl/live/server.crt:z
-      - ${PWD}/certs/backend.key:/etc/ssl/live/server.key:z
+      - ${PWD}/.certs/backend.cert:/etc/ssl/live/server.crt:z
+      - ${PWD}/.certs/backend.key:/etc/ssl/live/server.key:z
     ports:
       - 50051
       - 4242/udp
 
-  # tunnel:
-  #   image: dino/tunnel:latest
-  #   container_name: reverse-tunnel
-  #   restart: 'unless-stopped'
-  #   environment:
-  #     - name=value
-  #   networks:
-  #     - tunnel-network
-  #     - local-network
-  
-  # whoami:
-  #   image: dino/whoami:latest
-  #   container_name: whoami
-  #   networks:
-  #     - local-network
-
 networks:
   proxy:  # ingress network
-    external: true
+    name: dino-proxy
+    driver: bridge
   dino-private-network: # private remote network
-    external: true
+    name: dino-private
+    internal: true
