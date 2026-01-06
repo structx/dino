@@ -16,6 +16,8 @@ require (
 	github.com/sethvargo/go-envconfig v1.3.0
 	github.com/spf13/cobra v1.10.2
 	github.com/stretchr/testify v1.11.1
+	github.com/structx/teapot v0.0.2
+	github.com/structx/teapot/adapter/fx v0.0.0-20260106030448-6f5af56058f3
 	go.uber.org/fx v1.24.0
 	go.uber.org/mock v0.6.0
 	go.uber.org/multierr v1.11.0

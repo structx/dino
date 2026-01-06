@@ -1,8 +1,8 @@
 package interceptors
 
 import (
+	"github.com/structx/teapot"
 	"go.uber.org/fx"
-	"go.uber.org/zap"
 	"soft.structx.io/dino/tunnel/gateway"
 	"soft.structx.io/dino/tunnel/verifier"
 )
@@ -11,7 +11,7 @@ import (
 type Params struct {
 	fx.In
 
-	Logger *zap.Logger
+	Logger *teapot.Logger
 
 	Verifier verifier.Verifier
 }

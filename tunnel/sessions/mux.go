@@ -9,8 +9,8 @@ import (
 	"net/netip"
 	"sync"
 
+	"github.com/structx/teapot"
 	"go.uber.org/multierr"
-	"go.uber.org/zap"
 	tunnelnet "soft.structx.io/dino/tunnel/net"
 )
 
@@ -67,7 +67,7 @@ type Mux interface {
 }
 
 type sessionMultiplexer struct {
-	log *zap.Logger
+	log *teapot.Logger
 
 	mtx    sync.RWMutex
 	actors map[string]actor
@@ -77,9 +77,9 @@ type sessionMultiplexer struct {
 // interface compliance
 var _ Mux = (*sessionMultiplexer)(nil)
 
-func newMux(logger *zap.Logger) Mux {
+func newMux(logger *teapot.Logger) Mux {
 	return &sessionMultiplexer{
-		log:    logger.Named("session_multiplexer"),
+		log:    logger,
 		mtx:    sync.RWMutex{},
 		errCh:  make(chan error),
 		actors: map[string]actor{},
@@ -158,7 +158,7 @@ func (s *sessionMultiplexer) InitSession(conn tunnelnet.Conn, sessionID, protoco
 					Status: 1,
 				},
 			}); err != nil {
-				s.log.Error("conn.Write", zap.Error(err))
+				s.log.Error("conn.Write", teapot.Error(err))
 			}
 		},
 	}
@@ -175,8 +175,6 @@ func (s *sessionMultiplexer) start(_ context.Context) error {
 }
 
 func (s *sessionMultiplexer) stop(_ context.Context) error {
-	// TODO
-	// implement stop functionality
 	var result error
 	for _, a := range s.actors {
 		if err := a.close(); err != nil {
@@ -189,7 +187,7 @@ func (s *sessionMultiplexer) stop(_ context.Context) error {
 
 func (s *sessionMultiplexer) worker() {
 	for err := range s.errCh {
-		s.log.Error("session error occurred", zap.Error(err))
+		s.log.Error("session error occurred", teapot.Error(err))
 	}
 }
 

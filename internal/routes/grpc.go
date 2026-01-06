@@ -4,7 +4,7 @@ import (
 	"context"
 	"time"
 
-	"go.uber.org/zap"
+	"github.com/structx/teapot"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/timestamppb"
@@ -14,20 +14,20 @@ import (
 type routeServer struct {
 	pb.UnimplementedRouteServiceServer
 
-	log *zap.Logger
+	log *teapot.Logger
 	svc Service
 }
 
-func newRouteServer(logger *zap.Logger, routeService Service) pb.RouteServiceServer {
+func newRouteServer(logger *teapot.Logger, routeService Service) pb.RouteServiceServer {
 	return &routeServer{
-		log: logger.Named("route_server"),
+		log: logger,
 		svc: routeService,
 	}
 }
 
 // CreateRoute
 func (rs *routeServer) CreateRoute(ctx context.Context, in *pb.CreateRouteRequest) (*pb.CreateRouteResponse, error) {
-	rs.log.Debug("CreateRoute", zap.Any("request", in))
+	rs.log.Debug("CreateRoute", teapot.Any("request", in))
 	args := RouteCreate{
 		Tunnel:              in.Create.Tunnel,
 		Hostname:            in.Create.Hostname,
@@ -38,7 +38,7 @@ func (rs *routeServer) CreateRoute(ctx context.Context, in *pb.CreateRouteReques
 
 	route, err := rs.svc.Create(ctx, args)
 	if err != nil {
-		rs.log.Error("create route", zap.Error(err))
+		rs.log.Error("create route", teapot.Error(err))
 		return nil, status.Error(codes.Internal, codes.Internal.String())
 	}
 
@@ -49,7 +49,7 @@ func (rs *routeServer) CreateRoute(ctx context.Context, in *pb.CreateRouteReques
 func (rs *routeServer) DeleteRoute(ctx context.Context, in *pb.DeleteRouteRequest) (*pb.DeleteRouteResponse, error) {
 	err := rs.svc.Delete(ctx, in.Hostname)
 	if err != nil {
-		rs.log.Error("delete route", zap.Error(err))
+		rs.log.Error("delete route", teapot.Error(err))
 		return nil, status.Error(codes.Internal, codes.Internal.String())
 	}
 	return newDeleteRouteResponse(), nil
@@ -63,7 +63,7 @@ func newDeleteRouteResponse() *pb.DeleteRouteResponse {
 func (rs *routeServer) GetRoute(ctx context.Context, in *pb.GetRouteRequest) (*pb.GetRouteResponse, error) {
 	route, err := rs.svc.Get(ctx, in.Hostname)
 	if err != nil {
-		rs.log.Error("get route", zap.Error(err))
+		rs.log.Error("get route", teapot.Error(err))
 		return nil, status.Error(codes.Internal, codes.Internal.String())
 	}
 	return newGetRouteResponse(route), nil
@@ -77,7 +77,7 @@ func (rs *routeServer) ListRoutes(ctx context.Context, in *pb.ListRoutesRequest)
 		Offset: in.Offset,
 	})
 	if err != nil {
-		rs.log.Error("list routes", zap.Error(err))
+		rs.log.Error("list routes", teapot.Error(err))
 		return nil, status.Error(codes.Internal, codes.Internal.String())
 	}
 	return newListRoutesResponse(partials), err
@@ -97,7 +97,7 @@ func (rs *routeServer) UpdateRoute(ctx context.Context, in *pb.UpdateRouteReques
 
 	route, err := rs.svc.Update(ctx, args)
 	if err != nil {
-		rs.log.Error("update route", zap.Error(err))
+		rs.log.Error("update route", teapot.Error(err))
 		return nil, status.Error(codes.Internal, codes.Internal.String())
 	}
 

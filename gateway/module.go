@@ -8,15 +8,13 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/structx/teapot"
 	"go.uber.org/fx"
 	"go.uber.org/multierr"
-	"go.uber.org/zap"
-	"go.uber.org/zap/zapgrpc"
 	"golang.org/x/net/http2"
 	"golang.org/x/net/http2/h2c"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/grpclog"
 	"google.golang.org/grpc/status"
 	"soft.structx.io/dino/setup"
 
@@ -58,7 +56,7 @@ type Params struct {
 
 	Lc fx.Lifecycle
 
-	Logger *zap.Logger
+	Logger *teapot.Logger
 
 	ServerConfig *setup.Server
 	ProxyConfig  *setup.Proxy
@@ -78,7 +76,7 @@ func invokeModule(p Params) error {
 
 	hostAndPort := net.JoinHostPort(p.ServerConfig.Host, p.ServerConfig.Port)
 
-	p.Logger.Info("num transports", zap.Int("len", len(p.Transports)))
+	p.Logger.Info("num transports", teapot.Int("len", len(p.Transports)))
 
 	gs := grpc.NewServer()
 	for _, tr := range p.Transports {
@@ -88,8 +86,10 @@ func invokeModule(p Params) error {
 	healthcheck := health.NewServer()
 	healthpb.RegisterHealthServer(gs, healthcheck)
 
-	rpcLogger := zapgrpc.NewLogger(p.Logger)
-	grpclog.SetLoggerV2(rpcLogger)
+	// TODO
+	// implement teapot grpc adapter
+	// rpcLogger := zapgrpc.NewLogger(p.Logger)
+	// grpclog.SetLoggerV2(rpcLogger)
 
 	mux := http.NewServeMux()
 	mux.HandleFunc("/", p.Proxy.ServeHTTP)
@@ -118,17 +118,17 @@ func invokeModule(p Params) error {
 
 	p.Lc.Append(fx.Hook{
 		OnStart: func(ctx context.Context) error {
-			p.Logger.Info("start http/1 proxy server", zap.String("server_addr", h1.Addr))
+			p.Logger.Info("start http/1 proxy server", teapot.String("server_addr", h1.Addr))
 			go func() {
 				if err := h1.ListenAndServe(); err != nil && errors.Is(err, http.ErrServerClosed) {
-					p.Logger.Fatal("start http/1 proxy server", zap.Error(err))
+					p.Logger.Fatal("start http/1 proxy server", teapot.Error(err))
 				}
 			}()
 
-			p.Logger.Info("start hls server", zap.String("server_addr", hls.Addr))
+			p.Logger.Info("start hls server", teapot.String("server_addr", hls.Addr))
 			go func() {
 				if err := hls.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
-					p.Logger.Fatal("unable to start hls server", zap.Error(err))
+					p.Logger.Fatal("unable to start hls server", teapot.Error(err))
 				}
 			}()
 

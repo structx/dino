@@ -1,8 +1,8 @@
 package routes
 
 import (
+	"github.com/structx/teapot"
 	"go.uber.org/fx"
-	"go.uber.org/zap"
 	"soft.structx.io/dino/database"
 	"soft.structx.io/dino/gateway"
 	pb "soft.structx.io/dino/pb/routes/v1"
@@ -13,7 +13,7 @@ import (
 type Params struct {
 	fx.In
 
-	Logger *zap.Logger
+	Logger *teapot.Logger
 
 	DBTX database.DBTX
 

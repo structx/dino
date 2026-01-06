@@ -1,7 +1,10 @@
 package main
 
 import (
+	"github.com/structx/teapot"
+	teafx "github.com/structx/teapot/adapter/fx"
 	"go.uber.org/fx"
+	"go.uber.org/fx/fxevent"
 	"soft.structx.io/dino/auth"
 	"soft.structx.io/dino/database"
 	"soft.structx.io/dino/database/migrate"
@@ -22,8 +25,10 @@ import (
 )
 
 var opts = fx.Options(
-	setup.Module,    // server config
-	logging.Module,  // uber/zap logger
+	setup.Module, // server config
+	logging.Module, fx.WithLogger(func(l *teapot.Logger) fxevent.Logger {
+		return teafx.New(l)
+	}),
 	database.Module, // pgx connector
 	auth.Module,     // jwt authenticator
 	verifier.Module, // jwt verifier

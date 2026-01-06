@@ -88,6 +88,10 @@ github.com/stretchr/testify v1.3.0/go.mod h1:M5WIy9Dh21IEIfnGCwXGc5bZfKNJtfHm1UV
 github.com/stretchr/testify v1.7.0/go.mod h1:6Fq8oRcR53rry900zMqJjRRixrwX3KX962/h/Wwjteg=
 github.com/stretchr/testify v1.11.1 h1:7s2iGBzp5EwR7/aIZr8ao5+dra3wiQyKjjFuvgVKu7U=
 github.com/stretchr/testify v1.11.1/go.mod h1:wZwfW3scLgRK+23gO65QZefKpKQRnfz6sD981Nm4B6U=
+github.com/structx/teapot v0.0.2 h1:Hq2oxcuYuhUgsNP47PkETOxwO7EpkfB/0srt2ZtVVdc=
+github.com/structx/teapot v0.0.2/go.mod h1:2Okp2a8rEEbRWxrEf9zwGPeafR6s9iUGOH6699wLVnY=
+github.com/structx/teapot/adapter/fx v0.0.0-20260106030448-6f5af56058f3 h1:Gnvi0gvAOQVQHVH8dPxwH8OS5SF4+TnyByXpxIIlMGk=
+github.com/structx/teapot/adapter/fx v0.0.0-20260106030448-6f5af56058f3/go.mod h1:shtQXZlyUJ3LWkvoFNYQbMI8GqV6HcQTRdvPV5JSvB8=
 go.opentelemetry.io/auto/sdk v1.2.1 h1:jXsnJ4Lmnqd11kwkBV2LgLoFMZKizbCi5fNZ/ipaZ64=
 go.opentelemetry.io/auto/sdk v1.2.1/go.mod h1:KRTj+aOaElaLi+wW1kO/DZRXwkF4C5xPbEe3ZiIhN7Y=
 go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.64.0 h1:ssfIgGNANqpVFCndZvcuyKbl0g+UAVcbBcqGkG28H0Y=

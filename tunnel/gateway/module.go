@@ -8,12 +8,10 @@ import (
 
 	"github.com/quic-go/quic-go"
 	"github.com/quic-go/quic-go/qlog"
+	"github.com/structx/teapot"
 	"go.uber.org/fx"
 	"go.uber.org/multierr"
-	"go.uber.org/zap"
-	"go.uber.org/zap/zapgrpc"
 	"google.golang.org/grpc"
-	"google.golang.org/grpc/grpclog"
 	"soft.structx.io/dino/setup"
 	"soft.structx.io/dino/tunnel/transport"
 )
@@ -33,7 +31,7 @@ type Params struct {
 
 	Lc fx.Lifecycle
 
-	Logger *zap.Logger
+	Logger *teapot.Logger
 
 	Cfg *setup.Server
 
@@ -58,7 +56,7 @@ func invokeModule(p Params) error {
 	s := grpc.NewServer()
 	s.RegisterService(p.Transport.ServiceDesc, p.Transport.Service)
 
-	grpclog.SetLoggerV2(zapgrpc.NewLogger(p.Logger))
+	// grpclog.SetLoggerV2(zapgrpc.NewLogger(p.Logger))
 
 	quicHostAndPort := net.JoinHostPort(p.Cfg.QuicHost, p.Cfg.QuicPort)
 	quicListener, err := quic.ListenAddr(quicHostAndPort, tlsConfig, &quic.Config{
@@ -71,11 +69,10 @@ func invokeModule(p Params) error {
 
 	p.Lc.Append(fx.Hook{
 		OnStart: func(ctx context.Context) error {
-			p.Logger.Info("start gRPC-QUIC server", zap.Any("server_addr", grpcQuicListener.Addr()))
-			p.Logger.Info("tls config", zap.Strings("next_protos", tlsConfig.NextProtos))
+			p.Logger.Info("start gRPC-QUIC server", teapot.Any("server_addr", grpcQuicListener.Addr()))
 			go func() {
 				if err := s.Serve(grpcQuicListener); err != nil {
-					p.Logger.Fatal("unable to start gRPC-QUIC server", zap.Error(err))
+					p.Logger.Fatal("unable to start gRPC-QUIC server", teapot.Error(err))
 				}
 			}()
 			return nil

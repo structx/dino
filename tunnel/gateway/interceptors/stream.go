@@ -1,7 +1,7 @@
 package interceptors
 
 import (
-	"go.uber.org/zap"
+	"github.com/structx/teapot"
 	"google.golang.org/grpc/metadata"
 	"soft.structx.io/dino/gateway"
 	tunnelgateway "soft.structx.io/dino/tunnel/gateway"
@@ -14,22 +14,22 @@ const (
 )
 
 type serverInterceptor struct {
-	l *zap.Logger
+	l *teapot.Logger
 	v verifier.Verifier
 }
 
 type wrappedStream struct {
 	gateway.ServerStream
 
-	l *zap.Logger
+	l *teapot.Logger
 }
 
-func newServerInterceptor(logger *zap.Logger, verifier verifier.Verifier) tunnelgateway.StreamServerInterceptor {
+func newServerInterceptor(logger *teapot.Logger, verifier verifier.Verifier) tunnelgateway.StreamServerInterceptor {
 	s := &serverInterceptor{l: logger, v: verifier}
 	return s.StreamInterceptor
 }
 
-func newWrappedStream(s gateway.ServerStream, logger *zap.Logger) gateway.ServerStream {
+func newWrappedStream(s gateway.ServerStream, logger *teapot.Logger) gateway.ServerStream {
 	return &wrappedStream{
 		l:            logger,
 		ServerStream: s,
@@ -37,12 +37,12 @@ func newWrappedStream(s gateway.ServerStream, logger *zap.Logger) gateway.Server
 }
 
 func (w *wrappedStream) RecvMsg(m any) error {
-	w.l.Debug("recv msg", zap.Any("msg", m))
+	w.l.Debug("recv msg", teapot.Any("msg", m))
 	return w.ServerStream.RecvMsg(m)
 }
 
 func (w *wrappedStream) SendMsg(m any) error {
-	w.l.Debug("send msg", zap.Any("msg", m))
+	w.l.Debug("send msg", teapot.Any("msg", m))
 	return w.ServerStream.SendMsg(m)
 }
 
@@ -71,7 +71,7 @@ func (si *serverInterceptor) StreamInterceptor(srv any, ss gateway.ServerStream,
 
 	err := handler(srv, newWrappedStream(ss, si.l))
 	if err != nil {
-		si.l.Error("RPC failed with error", zap.Error(err))
+		si.l.Error("RPC failed with error", teapot.Error(err))
 	}
 
 	return err
