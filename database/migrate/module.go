@@ -8,8 +8,8 @@ import (
 	"github.com/golang-migrate/migrate/v4"
 	pgx "github.com/golang-migrate/migrate/v4/database/pgx/v5"
 	"github.com/golang-migrate/migrate/v4/source/iofs"
+	"github.com/structx/teapot"
 	"go.uber.org/fx"
-	"go.uber.org/zap"
 	"soft.structx.io/dino/setup"
 )
 
@@ -17,28 +17,28 @@ import (
 type Params struct {
 	fx.In
 
-	Logger *zap.Logger
+	Logger *teapot.Logger
 
 	Cfg *setup.DB
 
 	EmbedFS []embed.FS `group:"migrations"`
 }
 
-type zapAdapter struct {
-	logger *zap.Logger
+type teaAdapter struct {
+	logger *teapot.Logger
 }
 
 // Printf implements migrate.Logger.
-func (z *zapAdapter) Printf(format string, v ...interface{}) {
-	z.logger.Info(format, zap.Any("v", v))
+func (t *teaAdapter) Printf(format string, v ...interface{}) {
+	t.logger.Info(format, teapot.Any("v", v))
 }
 
 // Verbose implements migrate.Logger.
-func (z *zapAdapter) Verbose() bool {
+func (t *teaAdapter) Verbose() bool {
 	return true
 }
 
-var _ migrate.Logger = (*zapAdapter)(nil)
+var _ migrate.Logger = (*teaAdapter)(nil)
 
 // Module
 var Module = fx.Module("database_migrate", fx.Invoke(invokeModule))
@@ -65,7 +65,7 @@ func invokeModule(p Params) error {
 			return fmt.Errorf("migrate.NewWithInstance: %w", err)
 		}
 
-		m.Log = &zapAdapter{logger: p.Logger.Named("go_migrate")}
+		m.Log = &teaAdapter{logger: p.Logger}
 
 		if err := m.Up(); err != nil && !errors.Is(err, migrate.ErrNoChange) {
 			return fmt.Errorf("m.Up: %w", err)

@@ -1,8 +1,8 @@
 package sessions
 
 import (
+	"github.com/structx/teapot"
 	"go.uber.org/fx"
-	"go.uber.org/zap"
 )
 
 // Params
@@ -11,7 +11,7 @@ type Params struct {
 
 	Lc fx.Lifecycle
 
-	Logger *zap.Logger
+	Logger *teapot.Logger
 }
 
 // Result

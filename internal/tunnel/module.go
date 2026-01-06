@@ -1,8 +1,8 @@
 package tunnel
 
 import (
+	"github.com/structx/teapot"
 	"go.uber.org/fx"
-	"go.uber.org/zap"
 	"soft.structx.io/dino/auth"
 	"soft.structx.io/dino/database"
 	"soft.structx.io/dino/gateway"
@@ -13,7 +13,7 @@ import (
 type Params struct {
 	fx.In
 
-	Logger *zap.Logger
+	Logger *teapot.Logger
 
 	DB database.DBTX
 

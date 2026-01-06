@@ -7,7 +7,7 @@ import (
 	"fmt"
 	"sync"
 
-	"go.uber.org/zap"
+	"github.com/structx/teapot"
 	"soft.structx.io/dino/internal/routes"
 	"soft.structx.io/dino/internal/tunnel"
 	"soft.structx.io/dino/pubsub"
@@ -30,7 +30,7 @@ type sessionMultiplexer struct {
 	ctx      context.Context
 	cancelFn context.CancelFunc
 
-	log *zap.Logger
+	log *teapot.Logger
 
 	mtx     sync.Mutex
 	tunnels map[string]*activeTunnel
@@ -42,7 +42,7 @@ type sessionMultiplexer struct {
 }
 
 func newMux(
-	logger *zap.Logger,
+	logger *teapot.Logger,
 	broker pubsub.Broker,
 	tsvc tunnel.Service,
 	rsvc routes.Service,
@@ -89,13 +89,13 @@ func (m *sessionMultiplexer) UnarySession(ctx context.Context, tunnelUID string)
 	session := tunnel.registerSession()
 	err := session.openConn()
 	if err != nil {
-		m.log.Error("open session connection", zap.Error(err))
+		m.log.Error("open session connection", teapot.Error(err))
 		return nil, nil, nil, false
 	}
 
 	cleanup := func() {
 		if err := tunnel.deregisterSession(session.sessionID); err != nil {
-			m.log.Error("deregister session", zap.Error(err))
+			m.log.Error("deregister session", teapot.Error(err))
 		}
 	}
 
@@ -158,7 +158,7 @@ func (m *sessionMultiplexer) subscription(ch chan string) {
 		case msg := <-ch:
 			rcfg, err := decodeMessge(msg)
 			if err != nil {
-				m.log.Error("decode route config", zap.Error(err))
+				m.log.Error("decode route config", teapot.Error(err))
 				continue
 			}
 
@@ -176,7 +176,7 @@ func (m *sessionMultiplexer) subscription(ch chan string) {
 						IsDelete:     rcfg.IsDelete,
 					},
 				}); err != nil {
-					m.log.Error("write route config", zap.Error(err))
+					m.log.Error("write route config", teapot.Error(err))
 				}
 			}
 		}

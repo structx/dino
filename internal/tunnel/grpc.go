@@ -3,7 +3,7 @@ package tunnel
 import (
 	"context"
 
-	"go.uber.org/zap"
+	"github.com/structx/teapot"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/emptypb"
@@ -15,7 +15,7 @@ import (
 type grpcServer struct {
 	pb.UnimplementedTunnelServiceServer
 
-	l *zap.Logger
+	l *teapot.Logger
 	s Service
 	a auth.Authenticator
 }
@@ -23,7 +23,7 @@ type grpcServer struct {
 // interface compliance
 var _ pb.TunnelServiceServer = (*grpcServer)(nil)
 
-func newGrpcServer(logger *zap.Logger, tunnelService Service, auth auth.Authenticator) pb.TunnelServiceServer {
+func newGrpcServer(logger *teapot.Logger, tunnelService Service, auth auth.Authenticator) pb.TunnelServiceServer {
 	return &grpcServer{
 		l: logger,
 		s: tunnelService,
@@ -39,13 +39,13 @@ func (g *grpcServer) CreateTunnel(ctx context.Context, in *pb.CreateTunnelReques
 
 	tunnel, sharedSecret, err := g.s.Create(ctx, args)
 	if err != nil {
-		g.l.Error("create tunnel", zap.Error(err))
+		g.l.Error("create tunnel", teapot.Error(err))
 		return nil, status.Error(codes.Internal, codes.Internal.String())
 	}
 
 	token, err := g.a.GenerateJWT(tunnel.Name, tunnel.ID, sharedSecret.Secret)
 	if err != nil {
-		g.l.Error("generate jwt", zap.Error(err))
+		g.l.Error("generate jwt", teapot.Error(err))
 		return nil, status.Error(codes.Internal, codes.Internal.String())
 	}
 
@@ -56,7 +56,7 @@ func (g *grpcServer) CreateTunnel(ctx context.Context, in *pb.CreateTunnelReques
 func (g *grpcServer) DeleteTunnel(ctx context.Context, in *pb.DeleteTunnelRequest) (*pb.DeleteTunnelResponse, error) {
 	err := g.s.Delete(ctx, in.GetName())
 	if err != nil {
-		g.l.Error("delete tunnel", zap.Error(err))
+		g.l.Error("delete tunnel", teapot.Error(err))
 		return nil, status.Error(codes.Internal, codes.Internal.String())
 	}
 	return newDeleteTunnelResponse(), nil
@@ -66,7 +66,7 @@ func (g *grpcServer) DeleteTunnel(ctx context.Context, in *pb.DeleteTunnelReques
 func (g *grpcServer) GetTunnel(ctx context.Context, in *pb.GetTunnelRequest) (*pb.GetTunnelResponse, error) {
 	tunnel, err := g.s.Get(ctx, in.GetName())
 	if err != nil {
-		g.l.Error("get tunnel", zap.Error(err))
+		g.l.Error("get tunnel", teapot.Error(err))
 		return nil, status.Error(codes.Internal, codes.Internal.String())
 	}
 	return newGetTunnelReply(tunnel), nil
@@ -76,7 +76,7 @@ func (g *grpcServer) GetTunnel(ctx context.Context, in *pb.GetTunnelRequest) (*p
 func (g *grpcServer) ListTunnels(ctx context.Context, in *pb.ListTunnelsRequest) (*pb.ListTunnelsResponse, error) {
 	partials, err := g.s.List(ctx, in.Limit, in.Offset)
 	if err != nil {
-		g.l.Error("list tunnels", zap.Error(err))
+		g.l.Error("list tunnels", teapot.Error(err))
 		return nil, status.Error(codes.Internal, codes.Internal.String())
 	}
 	return newListTunnelsReply(partials), nil
@@ -90,7 +90,7 @@ func (g *grpcServer) UpdateTunnel(ctx context.Context, in *pb.UpdateTunnelReques
 	}
 	tunnel, err := g.s.Update(ctx, args)
 	if err != nil {
-		g.l.Error("update tunnel", zap.Error(err))
+		g.l.Error("update tunnel", teapot.Error(err))
 		return nil, status.Error(codes.Internal, codes.Internal.String())
 	}
 	return newUpdateTunnelResponse(tunnel), nil

@@ -7,8 +7,8 @@ import (
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/structx/teapot"
 	"go.uber.org/fx"
-	"go.uber.org/zap"
 	"soft.structx.io/dino/setup"
 )
 
@@ -34,7 +34,7 @@ type DBTX interface {
 type Params struct {
 	fx.In
 
-	Logger *zap.Logger
+	Logger *teapot.Logger
 
 	Lc fx.Lifecycle
 

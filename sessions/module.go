@@ -1,8 +1,8 @@
 package sessions
 
 import (
+	"github.com/structx/teapot"
 	"go.uber.org/fx"
-	"go.uber.org/zap"
 	"soft.structx.io/dino/internal/routes"
 	"soft.structx.io/dino/internal/tunnel"
 	"soft.structx.io/dino/pubsub"
@@ -14,7 +14,7 @@ type Params struct {
 
 	Lc fx.Lifecycle
 
-	Logger *zap.Logger
+	Logger *teapot.Logger
 
 	TunnelService tunnel.Service `name:"tunnel_service"`
 	RouteService  routes.Service

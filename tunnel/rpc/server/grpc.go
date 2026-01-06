@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"io"
 
-	"go.uber.org/zap"
+	"github.com/structx/teapot"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/metadata"
@@ -124,7 +124,7 @@ func (t tunnelConn) Close(sessionID string) error {
 type reverseTunnelServer struct {
 	pb.UnimplementedReverseTunnelServiceServer
 
-	log *zap.Logger
+	log *teapot.Logger
 
 	mux      sessions.Multiplexer
 	verifier verifier.Verifier
@@ -134,9 +134,9 @@ type reverseTunnelServer struct {
 var _ pb.ReverseTunnelServiceServer = (*reverseTunnelServer)(nil)
 var _ tunnelnet.Conn = (*tunnelConn)(nil)
 
-func newReverseTunnelServer(logger *zap.Logger, sessionMux sessions.Multiplexer, verifier verifier.Verifier) pb.ReverseTunnelServiceServer {
+func newReverseTunnelServer(logger *teapot.Logger, sessionMux sessions.Multiplexer, verifier verifier.Verifier) pb.ReverseTunnelServiceServer {
 	return &reverseTunnelServer{
-		log:      logger.Named("rtunnel_server"),
+		log:      logger,
 		mux:      sessionMux,
 		verifier: verifier,
 	}
@@ -167,18 +167,18 @@ func (rts *reverseTunnelServer) EstablishTunnel(stream grpc.BidiStreamingServer[
 
 	claims, err := rts.verifier.VerifyToken(ctx, ids[0], authorizations[0])
 	if err != nil {
-		rts.log.Error("failed to verify token", zap.Error(err))
+		rts.log.Error("failed to verify token", teapot.Error(err))
 		return status.Error(codes.Unauthenticated, codes.Unauthenticated.String())
 	}
 
 	tc := tunnelConn{str: stream}
 	if err := rts.mux.RegisterTunnel(ctx, tc, claims.ID); err != nil {
-		rts.log.Error("sessionManager.RegisterTunnel", zap.Error(err))
+		rts.log.Error("sessionManager.RegisterTunnel", teapot.Error(err))
 		return status.Error(codes.Internal, codes.Internal.String())
 	}
 
 	if err := rts.mux.SyncRoutes(ctx, ids[0]); err != nil {
-		rts.log.Error("session manager sync routes", zap.Error(err))
+		rts.log.Error("session manager sync routes", teapot.Error(err))
 		return status.Error(codes.Internal, codes.Internal.String())
 	}
 

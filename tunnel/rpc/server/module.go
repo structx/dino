@@ -1,8 +1,8 @@
 package server
 
 import (
+	"github.com/structx/teapot"
 	"go.uber.org/fx"
-	"go.uber.org/zap"
 	pb "soft.structx.io/dino/pb/rtunnel/v1"
 	"soft.structx.io/dino/sessions"
 	"soft.structx.io/dino/tunnel/gateway"
@@ -13,7 +13,7 @@ import (
 type Params struct {
 	fx.In
 
-	Logger *zap.Logger
+	Logger *teapot.Logger
 
 	Mux      sessions.Multiplexer
 	Verifier verifier.Verifier

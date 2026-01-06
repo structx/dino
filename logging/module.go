@@ -1,8 +1,11 @@
 package logging
 
 import (
+	"os"
+	"strings"
+
+	"github.com/structx/teapot"
 	"go.uber.org/fx"
-	"go.uber.org/zap"
 	"soft.structx.io/dino/setup"
 )
 
@@ -19,14 +22,30 @@ type Params struct {
 type Result struct {
 	fx.Out
 
-	Logger *zap.Logger
+	Logger *teapot.Logger
 }
 
 // Module
-var Module = fx.Module("zap_logger", fx.Provide(newModule))
+var Module = fx.Module("teapot_logger", fx.Provide(newModule))
 
 func newModule(p Params) Result {
-	log, _ := zap.NewDevelopment()
+
+	var level teapot.Level
+	switch strings.ToLower(p.Cfg.Level) {
+	case "fatal":
+		level = teapot.FATAL
+	case "error":
+		level = teapot.ERROR
+	case "info":
+		level = teapot.INFO
+	default:
+		level = teapot.DEBUG
+	}
+
+	log := teapot.New(
+		teapot.WithLevel(level),
+		teapot.WithWriter(os.Stdout),
+	)
 	return Result{
 		Logger: log,
 	}

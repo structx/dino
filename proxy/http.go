@@ -6,8 +6,8 @@ import (
 	"net/http"
 	"sync"
 
+	"github.com/structx/teapot"
 	"go.uber.org/fx"
-	"go.uber.org/zap"
 	"soft.structx.io/dino/internal/routes"
 	"soft.structx.io/dino/sessions"
 )
@@ -21,7 +21,7 @@ type Handler interface {
 type Params struct {
 	fx.In
 
-	Logger *zap.Logger
+	Logger *teapot.Logger
 
 	Mux sessions.Multiplexer
 
@@ -36,7 +36,7 @@ type Result struct {
 }
 
 type handler struct {
-	log *zap.Logger
+	log *teapot.Logger
 
 	routeSvc routes.Service
 
@@ -77,14 +77,14 @@ func (h *handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	host, _, err := net.SplitHostPort(hostname)
 	if err != nil {
-		h.log.Error("split host and port", zap.Error(err))
+		h.log.Error("split host and port", teapot.Error(err))
 		http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
 		return
 	}
 
 	activeUID, err := h.routeSvc.Active(ctx, host)
 	if err != nil {
-		h.log.Error("active route", zap.Error(err))
+		h.log.Error("active route", teapot.Error(err))
 		http.Error(w, http.StatusText(http.StatusNotFound), http.StatusNotFound)
 		return
 	}
@@ -99,7 +99,7 @@ func (h *handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	// hijack end user connection
 	conn, buf, err := hijacker.Hijack()
 	if err != nil {
-		h.log.Error("hijacker.Hijack", zap.Error(err))
+		h.log.Error("hijacker.Hijack", teapot.Error(err))
 		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 		return
 	}
@@ -114,7 +114,7 @@ func (h *handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	defer cleanup()
 
 	if err := r.Write(wc); err != nil {
-		h.log.Error("r.Write", zap.Error(err))
+		h.log.Error("r.Write", teapot.Error(err))
 		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 		return
 	}
@@ -126,7 +126,7 @@ func (h *handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		defer wg.Done()
 		go func() {
 			if _, err := io.Copy(wc, buf); err != nil {
-				h.log.Error("io.Copy", zap.Error(err))
+				h.log.Error("io.Copy", teapot.Error(err))
 				http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 				return
 			}
@@ -136,7 +136,7 @@ func (h *handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	go func() {
 		defer wg.Done()
 		if _, err := io.Copy(conn, rc); err != nil {
-			h.log.Error("io.Copy", zap.Error(err))
+			h.log.Error("io.Copy", teapot.Error(err))
 			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 			return
 		}
